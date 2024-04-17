@@ -21,7 +21,6 @@ from ui import Ui_Form
 class Window(QtWidgets.QMainWindow, Ui_Form, Ui_Type_Check):
 
     def __init__(self):
-        self.bPrepare: QtWidgets.QPushButton
         super(Window, self).__init__()
         self.setupUi(self)
 
