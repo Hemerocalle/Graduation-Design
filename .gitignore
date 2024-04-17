@@ -1,0 +1,6 @@
+__pycache__
+.history
+.vscode
+temp
+trained_models\._.DS_Store
+ui_auto.py
