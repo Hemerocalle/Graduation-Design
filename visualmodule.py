@@ -72,6 +72,11 @@ class Recognizer(AbstractRecognizer):
             label = np.argmax(emotion)
             confidence = int(emotion[0][label] * 100)  # 百分数
             result.append((label, confidence, x1, y1, x2, y2))
+
+        # 负优化内容，用于剔除小脸
+        result.sort(key=lambda x: (x[4] - x[2]) * (x[5] - x[3]), reverse=True)
+        result = [result[0]]
+
         return result
 
     # 将表情信息添加到图像上，同时整理成文字信息
