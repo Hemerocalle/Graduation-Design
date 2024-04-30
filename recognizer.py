@@ -120,7 +120,7 @@ class RecVidio(Recognizer):
     def detectImg(cls):
         cv2.waitKey(1)
         # 从视频中切分出图像信息
-        cls.vidio_index += 0.3
+        cls.vidio_index += 0.25
         if cls.vidio_index >= cls.vidio_duration:
             return Result.FINISH, Result.FINISH.value
         frame = cls.vidio_origin.get_frame(cls.vidio_index)

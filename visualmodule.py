@@ -15,7 +15,7 @@
 # 根据人脸检测结果切割图片，并识别为表情信息
 #
 # markEmotion
-# 将表情信息添加到图像上，同时整理成文字信息
+# 将表情信息添加到图像上，同时整理成文本信息
 #
 # uint2float
 # 将图片从uint_8矩阵转化为float32矩阵，便于识别器处理
@@ -55,7 +55,7 @@ class Recognizer(AbstractRecognizer):
     # 根据人脸检测结果切割图片，并识别为表情信息
     @classmethod
     def getEmotion(cls, image: CVImage, fases: Sequence[Rect]) -> list[tuple]:
-        img_np = np.expand_dims(image, axis=2)  # 224*224*1
+        img_np = np.expand_dims(image, 2)  # 224*224*1
         result = []
         for x1, y1, width, height in fases:
             x2, y2 = x1 + width, y1 + height
@@ -74,7 +74,7 @@ class Recognizer(AbstractRecognizer):
             result.append((label, confidence, x1, y1, x2, y2))
         return result
 
-    # 将表情信息添加到图像上，同时整理成文字信息
+    # 将表情信息添加到图像上，同时整理成文本信息
     @classmethod
     def markEmotion(cls, image: CVImage,
                     emotions: list[tuple]) -> tuple[CVImage, str]:
