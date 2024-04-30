@@ -11,7 +11,7 @@
 #
 # 最后更新时间 2024/04/15
 
-from PyQt5.QtWidgets import QLabel, QPushButton, QFrame, QRadioButton
+from PyQt5.QtWidgets import QLabel, QPushButton
 
 from data import Result, RECOGNIZER_TYPE, PATH_RESULT, PATH_ORIGIN
 from framework import AbstractRecognizer
@@ -19,7 +19,7 @@ from recognizer import RecImage, RecVidio, RecCamera
 
 
 # 识别器的控制器，用于对外提供接口并协调三个识别器的工作状态
-class Controller(AbstractRecognizer):
+class Controller():
     mode: tuple[type]
     rec: AbstractRecognizer  # 其实是 TypeVar[Base] ,但是反正是静态无所谓了
     enable: dict[str, bool]
@@ -27,8 +27,13 @@ class Controller(AbstractRecognizer):
     textBox: QLabel
     startButton: QPushButton
 
+    def __new__(cls, *args, **kw):
+        if not cls._instance:
+            cls._instance = super().__new__(cls, *args, **kw)
+        return cls._instance
+
     @classmethod
-    def __init__(cls, mode, index=0) -> None:
+    def __init__(cls, mode=(RecImage, RecVidio, RecCamera), index=0) -> None:
         cls.mode = mode
         cls.rec: AbstractRecognizer = mode[index]
         cls.rec.radioOn()
@@ -118,4 +123,4 @@ class Controller(AbstractRecognizer):
         cls.startButton.setEnabled(all(cls.enable.values()))
 
 
-controller = Controller((RecImage, RecVidio, RecCamera))
+controller = Controller()
