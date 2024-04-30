@@ -20,6 +20,7 @@ import cv2
 from cv2.typing import MatLike as CVImage
 import numpy as np
 from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtCore import QTimer
 from moviepy.editor import VideoFileClip
 
 from data import Result, PATH_RESULT, PATH_ORIGIN
@@ -154,6 +155,19 @@ class RecCamera(Recognizer):
     @classmethod
     def radioOn(cls):
         print('radio 3 on')
+        cls.img_num = 0
+        cls.cap = cv2.VideoCapture()  # 视频流
+        cls.CAM_NUM = 0  # 为0时表示视频流来自笔记本内置摄像头
+        cls.timer_camera = QTimer()  # 定义定时器，用于控制显示视频的帧率 循环倒计时
+        cls.timer_camera.timeout.connect(
+            cls.show_camera)  # 若定时器结束，则调用show_camera()
+
+        flag = cls.cap.open(cls.CAM_NUM)  # 参数是0，表示打开笔记本的内置摄像头，参数是视频文件路径则打开视频
+        if flag == False:  # flag表示open()成不成功
+            # https://www.icode9.com/content-4-96818.html
+            print('warning', "请检查相机于电脑是否连接正确")
+        else:
+            cls.timer_camera.start(30)  # 定时器开始计时30ms，结果是每过30ms从摄像头中取一帧显示
 
     @classmethod
     def radioOff(cls):
@@ -166,3 +180,10 @@ class RecCamera(Recognizer):
     @classmethod
     def detectImg(cls):
         print('radio 3 hello')
+
+    @classmethod
+    def show_camera(cls):
+
+        flag, cls.image = cls.cap.read()  # 从视频流中读取
+        show = cv2.resize(cls.image, (640, 480))  # 把读到的帧的大小重新设置为 640x480
+        cv2.imwrite('./temp/camera.jpg', show)

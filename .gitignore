@@ -4,3 +4,4 @@ __pycache__
 temp
 trained_models\._.DS_Store
 ui_auto.py
+test.py
