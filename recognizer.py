@@ -155,37 +155,63 @@ class RecCamera(Recognizer):
     @classmethod
     def radioOn(cls):
         print('radio 3 on')
-        cls.img_num = 0
-        cls.cap = cv2.VideoCapture()  # 视频流
-        cls.timer_camera = QTimer()  # 定义定时器，用于控制显示视频的帧率 循环倒计时
-        cls.timer_camera.timeout.connect(
-            cls.show_camera)  # 若定时器结束，则调用show_camera()
-
-        flag = cls.cap.open(0)  # 参数是0，表示打开笔记本的内置摄像头，参数是视频文件路径则打开视频
-        if flag == False:  # flag表示open()成不成功
-            # https://www.icode9.com/content-4-96818.html
-            print('warning', "请检查相机于电脑是否连接正确")
-        else:
-            _, cls.img_origin = cls.cap.read()  # 从视频流中读取
-            cls.img_origin = cv2.flip(cls.img_origin, 1)
-            cv2.imwrite(PATH_ORIGIN, cls.img_origin)
-            # cls.timer_camera.start(30)  # 定时器开始计时30ms，结果是每过30ms从摄像头中取一帧显示
 
     @classmethod
     def radioOff(cls):
         print('radio 3 off')
 
     @classmethod
-    def loadImg(cls):
+    def loadImg(cls, flag=Result.PREPARE):
         print('radio 3 load')
+        if flag is Result.PREPARE:
+            return Result.LOADING, Result.LOADING
+
+        cls.camera = cv2.VideoCapture()  # 视频流
+        flag = cls.camera.open(0)  # 参数是0，表示打开笔记本的内置摄像头，参数是视频文件路径则打开视频
+        if flag == False:
+            return Result.CAMERA_NOT_FOUND, Result.CAMERA_NOT_FOUND
+
+        cls.img_num = 0
+        cls.timer = QTimer()  # 定义定时器，用于控制显示视频的帧率 循环倒计时
+        cls.timer.timeout.connect(cls.show_camera)  # 若定时器结束，则调用show_camera()
+
+        _, cls.img_origin = cls.camera.read()  # 从视频流中读取
+        cls.img_origin = cv2.flip(cls.img_origin, 1)
+        cv2.imwrite(PATH_ORIGIN, cls.img_origin)
+        # cls.timer.start(30)  # 定时器开始计时30ms，结果是每过30ms从摄像头中取一帧显示
+        return Result.CAMERA_START, Result.CAMERA_START
 
     @classmethod
     def detectImg(cls):
-        print('radio 3 hello')
+        cv2.waitKey(1)
+        # 从视频流中读取
+        _, frame = cls.camera.read()
+        frame = cv2.flip(frame, 1)
+        # cv2.imwrite(PATH_ORIGIN, frame)
+
+        # 获取灰度图像
+        # img_gray = cv2.imread(PATH_ORIGIN, 0)
+        img_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+
+        # 识别人脸位置
+        faces = cls.getFace(img_gray)
+        if len(faces) == 0:  # 找不到人脸
+            cv2.imwrite(PATH_RESULT, frame)
+            return Result.FACE_NOT_FOUND_CONTINUE, ''
+
+        # 识别表情状态
+        emotions = cls.getEmotion(img_gray, faces)
+
+        # 将识别结果展示在屏幕图像框中
+        result, text = cls.markEmotion(frame, emotions)
+        cv2.imwrite(PATH_RESULT, result)
+        # cv2.imwrite('file_temp/vedio_res.png', cv2.cvtColor(result, cv2.COLOR_RGB2BGR))
+
+        return Result.CONTINUE, text
 
     @classmethod
     def show_camera(cls):
 
-        flag, cls.image = cls.cap.read()  # 从视频流中读取
+        flag, cls.image = cls.camera.read()  # 从视频流中读取
         show = cv2.resize(cls.image, (640, 480))  # 把读到的帧的大小重新设置为 640x480
         cv2.imwrite('temp/camera.png', show)

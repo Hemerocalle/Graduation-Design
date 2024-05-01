@@ -46,20 +46,13 @@ class Controller():
         if type(cls.rec) is cls.mode[RECOGNIZER_TYPE[index]]:
             return
         cls.rec = cls.mode[RECOGNIZER_TYPE[index]](cls.rec)
+        cls.enable['image'] = False
         if cls.enable['model'] is False:
             return
 
-        if type(cls.rec) == RecCamera:
-            cls.enable['image'] = True
-            cls.textBox.setText('数据框')
-            cls.imageBox.setStyleSheet('border: 3px solid black;')
-            cls.imageBox.setStyleSheet(f'image: url(./{PATH_ORIGIN})')
-            cls.imageBox.setText('')
-        else:
-            cls.enable['image'] = False
-            cls.textBox.setText('数据框')
-            cls.imageBox.setStyleSheet('border: 3px solid black;')
-            cls.imageBox.setText('图像框')
+        cls.textBox.setText('数据框')
+        cls.imageBox.setStyleSheet('border: 3px solid black;')
+        cls.imageBox.setText('图像框')
         cls.startButton.setEnabled(all(cls.enable.values()))
 
     # 模型载入
@@ -95,6 +88,19 @@ class Controller():
             cls.textBox.setText(Result.FILE_NOT_FOUND.value)
             cls.imageBox.setStyleSheet('border: 3px solid black;')
             cls.imageBox.setText('图像框')
+        elif res is Result.LOADING:  # 请等待
+            cls.textBox.setText(Result.LOADING.value)
+            res, text = cls.rec.loadImg(Result.LOADING)  # type: ignore
+            if res is Result.CAMERA_START:
+                cls.enable['image'] = True
+                cls.textBox.setText(Result.CAMERA_START.value)
+                cls.imageBox.setStyleSheet(f'image: url(./{PATH_ORIGIN})')
+                cls.imageBox.setText('')
+            elif res is Result.CAMERA_NOT_FOUND:
+                cls.enable['image'] = False
+                cls.textBox.setText(Result.CAMERA_NOT_FOUND.value)
+                cls.imageBox.setStyleSheet('border: 3px solid black;')
+                cls.imageBox.setText('图像框')
         else:
             print('发生未知错误，可能是资源导入失败')
             cls.enable['image'] = False
