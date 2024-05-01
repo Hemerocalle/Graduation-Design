@@ -20,6 +20,7 @@ from recognizer import RecImage, RecVidio, RecCamera
 
 # 识别器的控制器，用于对外提供接口并协调三个识别器的工作状态
 class Controller():
+    _instance = None
     mode: tuple[type]
     rec: AbstractRecognizer  # 其实是 TypeVar[Base] ,但是反正是静态无所谓了
     enable: dict[str, bool]
@@ -45,12 +46,20 @@ class Controller():
         if type(cls.rec) is cls.mode[RECOGNIZER_TYPE[index]]:
             return
         cls.rec = cls.mode[RECOGNIZER_TYPE[index]](cls.rec)
-        cls.enable['image'] = False
         if cls.enable['model'] is False:
             return
-        cls.textBox.setText('数据框')
-        cls.imageBox.setStyleSheet('border: 3px solid black;')
-        cls.imageBox.setText('图像框')
+
+        if type(cls.rec) == RecCamera:
+            cls.enable['image'] = True
+            cls.textBox.setText('数据框')
+            cls.imageBox.setStyleSheet('border: 3px solid black;')
+            cls.imageBox.setStyleSheet(f'image: url(./{PATH_ORIGIN})')
+            cls.imageBox.setText('')
+        else:
+            cls.enable['image'] = False
+            cls.textBox.setText('数据框')
+            cls.imageBox.setStyleSheet('border: 3px solid black;')
+            cls.imageBox.setText('图像框')
         cls.startButton.setEnabled(all(cls.enable.values()))
 
     # 模型载入
