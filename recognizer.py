@@ -167,10 +167,11 @@ class RecCamera(Recognizer):
             return Result.LOADING, ''
 
         cls.camera = cv2.VideoCapture()  # 视频流
-        flag = cls.camera.open(0)  # 参数是0，表示打开笔记本的内置摄像头，参数是视频文件路径则打开视频
-        if flag == False:
+        ret = cls.camera.open(0)  # 参数是0，表示打开笔记本的内置摄像头，参数是视频文件路径则打开视频
+        if ret is False:
             return Result.CAMERA_NOT_FOUND, ''
 
+        cv2.waitKey(1)
         _, cls.img_origin = cls.camera.read()  # 从视频流中读取
         cls.img_origin = cv2.flip(cls.img_origin, 1)
         cv2.imwrite(PATH_ORIGIN, cls.img_origin)
@@ -181,8 +182,8 @@ class RecCamera(Recognizer):
     def detectImg(cls):
         cv2.waitKey(1)
         # 从视频流中读取
-        _, frame = cls.camera.read()
-        if frame is None:
+        ret, frame = cls.camera.read()
+        if ret is False:
             return Result.FINISH, Result.FINISH
         frame = cv2.flip(frame, 1)
         # cv2.imwrite(PATH_ORIGIN, frame)
