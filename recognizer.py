@@ -17,11 +17,10 @@
 # 最后更新时间 2024/04/15
 
 import cv2
+from cv2 import VideoCapture
 from cv2.typing import MatLike as CVImage
 import numpy as np
 from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtCore import QTimer
-from moviepy.editor import VideoFileClip
 
 from data import Result, PATH_RESULT, PATH_ORIGIN
 from visualmodule import Recognizer
@@ -81,9 +80,10 @@ class RecImage(Recognizer):
 
 # 视频识别器
 class RecVidio(Recognizer):
-    vidio_origin: VideoFileClip
-    vidio_duration: float
-    vidio_index: float
+    vidio_origin: VideoCapture
+    vidio_index: int
+    emotions: list[tuple]
+    emotion_freq: int
 
     @classmethod
     def radioOn(cls):
@@ -103,46 +103,51 @@ class RecVidio(Recognizer):
             return Result.NO_FILE_SELECTED, _
 
         # 导入视频
-        try:
-            # cls.vidio_origin = VideoFileClip(sys.argv[1]) # can be gif or movie
-            cls.vidio_origin = VideoFileClip(path)
-        except OSError:  # 找不到视频
+        cls.vidio_origin = VideoCapture()  # 视频流
+        ret = cls.vidio_origin.open(path)  # 参数是0，表示打开笔记本的内置摄像头，参数是视频文件路径则打开视频
+        if ret is False:
             return Result.FILE_NOT_FOUND, _
 
         # 将视频的第一帧展示在屏幕上
+        cv2.waitKey(1)
         cls.vidio_index = 0
-        cls.vidio_duration = cls.vidio_origin.duration
-        frame = cls.vidio_origin.get_frame(0)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        cls.emotion_freq = 0
+        _, frame = cls.vidio_origin.read()  # 从视频流中读取
         cv2.imwrite(PATH_ORIGIN, frame)
         return Result.FINISH, path
 
     @classmethod
-    def detectImg(cls):
+    def detectImg(cls) -> tuple[Result, str]:
         cv2.waitKey(1)
         # 从视频中切分出图像信息
-        cls.vidio_index += 0.25
-        if cls.vidio_index >= cls.vidio_duration:
-            return Result.FINISH, Result.FINISH.value
-        frame = cls.vidio_origin.get_frame(cls.vidio_index)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        cls.vidio_origin.set(cv2.CAP_PROP_POS_FRAMES, cls.vidio_index)
+        ret, frame = cls.vidio_origin.read()
+        cls.vidio_index += 3
+        if ret is False:
+            return Result.FINISH, ''
         # cv2.imwrite(PATH_ORIGIN, frame)
 
-        # 获取灰度图像
-        # img_gray = cv2.imread(PATH_ORIGIN, 0)
-        img_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+        # 提高视频流畅程度，每识别一帧会冷却3帧
+        if cls.emotion_freq != 0:
+            cls.emotion_freq -= 1
+        else:
+            # 获取灰度图像
+            # img_gray = cv2.imread(PATH_ORIGIN, 0)
+            img_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
 
-        # 识别人脸位置
-        faces = cls.getFace(img_gray)
-        if len(faces) == 0:  # 找不到人脸
-            cv2.imwrite(PATH_RESULT, frame)
-            return Result.FACE_NOT_FOUND_CONTINUE, Result.FACE_NOT_FOUND_CONTINUE
+            # 识别人脸位置
+            faces = cls.getFace(img_gray)
+            if len(faces) == 0:  # 找不到人脸
+                cv2.imwrite(PATH_RESULT, frame)
+                return Result.FACE_NOT_FOUND_CONTINUE, ''
 
-        # 识别表情状态
-        emotions = cls.getEmotion(img_gray, faces)
+            # 识别表情状态
+            cls.emotions = cls.getEmotion(img_gray, faces)
+
+            cls.emotion_freq = 3
 
         # 将识别结果展示在屏幕图像框中
-        result, text = cls.markEmotion(frame, emotions)
+        result, text = cls.markEmotion(frame, cls.emotions)
         cv2.imwrite(PATH_RESULT, result)
         # cv2.imwrite('file_temp/vedio_res.png', cv2.cvtColor(result, cv2.COLOR_RGB2BGR))
 
@@ -166,7 +171,7 @@ class RecCamera(Recognizer):
         if flag is Result.PREPARE:
             return Result.LOADING, ''
 
-        cls.camera = cv2.VideoCapture()  # 视频流
+        cls.camera = VideoCapture()  # 视频流
         ret = cls.camera.open(0)  # 参数是0，表示打开笔记本的内置摄像头，参数是视频文件路径则打开视频
         if ret is False:
             return Result.CAMERA_NOT_FOUND, ''
@@ -179,12 +184,12 @@ class RecCamera(Recognizer):
         return Result.CAMERA_START, ''
 
     @classmethod
-    def detectImg(cls):
+    def detectImg(cls) -> tuple[Result, str]:
         cv2.waitKey(1)
         # 从视频流中读取
         ret, frame = cls.camera.read()
         if ret is False:
-            return Result.FINISH, Result.FINISH
+            return Result.FINISH, ''
         frame = cv2.flip(frame, 1)
         # cv2.imwrite(PATH_ORIGIN, frame)
 
@@ -196,7 +201,7 @@ class RecCamera(Recognizer):
         faces = cls.getFace(img_gray)
         if len(faces) == 0:  # 找不到人脸
             cv2.imwrite(PATH_RESULT, frame)
-            return Result.FACE_NOT_FOUND_CONTINUE, Result.FACE_NOT_FOUND_CONTINUE
+            return Result.FACE_NOT_FOUND_CONTINUE, ''
 
         # 识别表情状态
         emotions = cls.getEmotion(img_gray, faces)
