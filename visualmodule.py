@@ -26,6 +26,8 @@
 #
 # 最后更新时间 2024/04/15
 
+from cProfile import label
+from cgitb import text
 from typing import Sequence
 from PIL import Image as PILImage, ImageDraw
 import cv2
@@ -67,11 +69,12 @@ class Recognizer(AbstractRecognizer):
             face = cls.uint2float(face)
             face = np.expand_dims(face, 0)
             face = np.expand_dims(face, -1)
-            emotion = CLASSIFIER_EMOTION.predict(face)  # type: ignore
+            emotion = CLASSIFIER_EMOTION.predict(face)[0]  # type: ignore
+            # print(emotion)
             # label = np.max(emotion)
-            label = np.argmax(emotion)
-            confidence = int(emotion[0][label] * 100)  # 百分数
-            result.append((label, confidence, x1, y1, x2, y2))
+            # label = np.argmax(emotion)
+            # confidence = int(emotion[label] * 100)  # 百分数
+            result.append((x1, y1, x2, y2, emotion))
         return result
 
     # 将表情信息添加到图像上，同时整理成文本信息
@@ -79,17 +82,19 @@ class Recognizer(AbstractRecognizer):
     def markEmotion(cls, image: CVImage,
                     emotions: list[tuple]) -> tuple[CVImage, str]:
         result = image
-        if len(emotions) == 1:
-            text = Result.FACE_FOUND_SINGLE.value
-        else:
-            emotions.sort(key=lambda x: x[2])
-            text = Result.FACE_FOUND_MULTIPLE.value.format(len(emotions))
+        # if len(emotions) == 1:
+        #     text = Result.FACE_FOUND_SINGLE.value
+        # else:
+        #     emotions.sort(key=lambda x: x[0])
+        #     text = Result.FACE_FOUND_MULTIPLE.value.format(len(emotions))
+        text = ''
         try:
-            for index, data, x1, y1, x2, y2 in emotions:
-                label = f'{EMOTION_LABELS[index]} ({str(data)}%)   '
+            for x1, y1, x2, y2, emotion in emotions:
+                # label = f'{EMOTION_LABELS[index]} ({str(data)}%)   '
+                label = ','.join(f'{emotion[i]:.2f}' for i in range(7))
                 cv2.rectangle(result, (x1, y1), (x2, y2), (0, 0, 255), 2)
-                result = cls.putText_CN(result, label, (x1, y1))
-                text += label
+                # result = cls.putText_CN(result, label, (x1, y1))
+                text += label + '\n'
                 print(label)
         except:
             print('发生未知错误，可能是中文字库调用失败')
