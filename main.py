@@ -15,7 +15,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from framework import Ui_Type_Check
 from controller import controller
-from ui import Ui_Form
+from ui.ui import Ui_Form
 
 
 class Window(QtWidgets.QMainWindow, Ui_Form, Ui_Type_Check):

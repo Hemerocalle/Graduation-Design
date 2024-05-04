@@ -2,6 +2,5 @@ __pycache__
 .history
 .vscode
 temp
-trained_models\._.DS_Store
-ui_auto.py
+ui\ui_auto.py
 test.py
