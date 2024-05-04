@@ -90,6 +90,7 @@ class Recognizer(AbstractRecognizer):
                 cv2.rectangle(result, (x1, y1), (x2, y2), (0, 0, 255), 2)
                 result = cls.putText_CN(result, label, (x1, y1))
                 text += label
+                print(label)
         except:
             print('发生未知错误，可能是中文字库调用失败')
         return result, text
