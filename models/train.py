@@ -26,7 +26,7 @@ input_shape = (48, 48, 1)
 validation_split = 0.1
 num_classes = 7
 patience = 50
-base_path = 'trained_models/float_models/'
+base_path = 'test/'
 
 # data generator
 data_generator = ImageDataGenerator(featurewise_center=False,
@@ -65,7 +65,7 @@ for dataset_name in datasets:
     callbacks = [model_checkpoint, csv_logger, early_stop, reduce_lr]
 
     # loading dataset
-    f = h5py.File('Data.hdf5', 'r')
+    f = h5py.File('models/Data.hdf5', 'r')
     X = f['X'][()]  # type: ignore
     X = uint2float(X)
     Y = f['Y'][()]  # type: ignore

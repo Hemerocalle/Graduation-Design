@@ -3,4 +3,5 @@ __pycache__
 .vscode
 temp
 ui\ui_auto.py
+models\test
 test.py
