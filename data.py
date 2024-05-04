@@ -13,8 +13,8 @@ from keras.models import load_model
 from PIL import ImageFont
 
 # 人脸识别和表情识别的模型路径
-MODEL_FACE = 'models/facemodel/haarcascade_frontalface_default.xml'
-MODEL_EMOTION = 'models/float_models/fer2013_mini_XCEPTION.33-0.65.hdf5'
+MODEL_FACE = 'models/model_face/haarcascade_frontalface_default.xml'
+MODEL_EMOTION = 'models/model_emotion/fer2013_mini_XCEPTION.33-0.65.hdf5'
 # 载入模型数据
 CLASSIFIER_FACE = CascadeClassifier(MODEL_FACE)
 CLASSIFIER_EMOTION = load_model(MODEL_EMOTION, compile=False)
