@@ -36,7 +36,7 @@ from cv2 import COLOR_BGR2RGB, COLOR_RGB2BGR
 import numpy as np
 from numpy._typing import NDArray as NPImage
 
-from data import Result, CLASSIFIER_FACE, CLASSIFIER_EMOTION, CLASSIFIER_EMOTION_SIZE, EMOTION_LABELS, FONT
+from data import Result, CLASSIFIER_FACE, CLASSIFIER_EMOTION, CLASSIFIER_EMOTION_SIZE, EMOTION_LABELS, EMOTION_MAP, FONT
 from framework import AbstractRecognizer
 
 
@@ -74,7 +74,7 @@ class Recognizer(AbstractRecognizer):
             # label = np.max(emotion)
             # label = np.argmax(emotion)
             # confidence = int(emotion[label] * 100)  # 百分数
-            result.append((x1, y1, x2, y2, emotion))
+            result.append((x1, y1, x2, y2, cls.emotion_map(emotion)))
         return result
 
     # 将表情信息添加到图像上，同时整理成文本信息
@@ -108,6 +108,10 @@ class Recognizer(AbstractRecognizer):
         x = x - 0.5
         x = x * 2.0
         return x
+
+    @classmethod
+    def emotion_map(cls, origin: tuple[int]) -> tuple:
+        return tuple(EMOTION_MAP[i](origin[i]) for i in range(7))
 
     # 在图片上添加中文
     @classmethod

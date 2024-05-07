@@ -160,6 +160,7 @@ class RecCamera(Recognizer):
     @classmethod
     def radioOn(cls):
         print('radio 3 on')
+        cls.camera = VideoCapture()  # 视频流
 
     @classmethod
     def radioOff(cls):
@@ -171,7 +172,6 @@ class RecCamera(Recognizer):
         if flag is Result.PREPARE:
             return Result.LOADING, ''
 
-        cls.camera = VideoCapture()  # 视频流
         ret = cls.camera.open(0)  # 参数是0，表示打开笔记本的内置摄像头，参数是视频文件路径则打开视频
         if ret is False:
             return Result.CAMERA_NOT_FOUND, ''

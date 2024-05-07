@@ -57,3 +57,14 @@ PATH_RESULT = 'temp/result.png'
 
 # 字体路径
 FONT = ImageFont.truetype('temp/msyh.ttc', 24)
+
+# 表情映射表
+EMOTION_MAP = (
+    lambda x: round(100 * x),
+    lambda x: round(100 * x),
+    lambda x: round(100 * x),
+    lambda x: round(162 * x**3 - 105 * x**2 + 43 * x),
+    lambda x: round(100 * x),
+    lambda x: round(100 * x),
+    lambda x: round(100 * x),
+)
