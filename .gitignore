@@ -2,6 +2,6 @@ __pycache__
 .history
 .vscode
 temp
-ui\ui_auto.py
-models\test
+ui/ui_auto.py
+models/test
 test.py

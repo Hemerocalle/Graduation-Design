@@ -50,13 +50,16 @@ class RecImage(Recognizer):
         # 导入图像
         try:
             # cls.img_origin = cv2.imread(path)
-            img_np = np.fromfile(path, dtype=np.uint8)
-            cls.img_origin = cv2.imdecode(img_np, -1)
+            image = np.fromfile(path, dtype=np.uint8)
+            image = cv2.imdecode(image, -1)
+            if image.shape[2] == 4:
+                image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
         except FileNotFoundError:  # 找不到图片
             return Result.FILE_NOT_FOUND, _
 
         # 将图像展示在屏幕上
-        cv2.imwrite(PATH_ORIGIN, cls.img_origin)
+        cls.img_origin = image
+        cv2.imwrite(PATH_ORIGIN, image)
         return Result.FINISH, path
 
     @classmethod
@@ -156,6 +159,7 @@ class RecVidio(Recognizer):
 
 # 实时识别器
 class RecCamera(Recognizer):
+    camera: VideoCapture
 
     @classmethod
     def radioOn(cls):
@@ -177,9 +181,9 @@ class RecCamera(Recognizer):
             return Result.CAMERA_NOT_FOUND, ''
 
         cv2.waitKey(1)
-        _, cls.img_origin = cls.camera.read()  # 从视频流中读取
-        cls.img_origin = cv2.flip(cls.img_origin, 1)
-        cv2.imwrite(PATH_ORIGIN, cls.img_origin)
+        _, cover = cls.camera.read()  # 从视频流中读取
+        cover = cv2.flip(cover, 1)
+        cv2.imwrite(PATH_ORIGIN, cover)
         # cls.timer.start(30)  # 定时器开始计时30ms，结果是每过30ms从摄像头中取一帧显示
         return Result.CAMERA_START, ''
 

@@ -16,7 +16,7 @@ class Ui_Form(object):
         Form.setObjectName("Form")
         Form.resize(750, 750)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("ico.ico"), QtGui.QIcon.Mode.Normal,
+        icon.addPixmap(QtGui.QPixmap("ui/ico.ico"), QtGui.QIcon.Mode.Normal,
                        QtGui.QIcon.State.Off)
         Form.setWindowIcon(icon)
         self.lImage = QtWidgets.QLabel(Form)

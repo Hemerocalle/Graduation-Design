@@ -84,19 +84,18 @@ class Recognizer(AbstractRecognizer):
     def markEmotion(cls, image: CVImage,
                     emotions: list[tuple]) -> tuple[CVImage, str]:
         result = image
-        # if len(emotions) == 1:
-        #     text = Result.FACE_FOUND_SINGLE.value
-        # else:
-        #     emotions.sort(key=lambda x: x[0])
-        #     text = Result.FACE_FOUND_MULTIPLE.value.format(len(emotions))
-        text = ''
+        if len(emotions) == 1:
+            text = Result.FACE_FOUND_SINGLE.value
+        else:
+            emotions.sort(key=lambda x: x[0])
+            text = Result.FACE_FOUND_MULTIPLE.value.format(len(emotions))
         try:
             for x1, y1, x2, y2, emotion in emotions:
                 # label = f'{EMOTION_LABELS[index]} ({str(data)}%)   '
                 # label = ','.join(f'{emotion[i]}' for i in range(7))
                 label = cls.microexpression(emotion)
-                cv2.rectangle(result, (x1, y1), (x2, y2), (0, 0, 255), 2)
-                # result = cls.putText_CN(result, label, (x1, y1))
+                cv2.rectangle(result, (x1, y1), (x2, y2), (0, 0, 255), 1)
+                result = cls.putText_CN(result, label[:2], (x1, y1))
                 text += label + '\n'
                 print(label)
         except:
