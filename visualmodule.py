@@ -26,6 +26,10 @@
 #
 # 最后更新时间 2024/04/15
 
+from cProfile import label
+from cgitb import text
+from math import floor
+from re import match
 from typing import Sequence
 from PIL import Image as PILImage, ImageDraw
 import cv2
@@ -34,7 +38,7 @@ from cv2 import COLOR_BGR2RGB, COLOR_RGB2BGR
 import numpy as np
 from numpy._typing import NDArray as NPImage
 
-from data import Result, CLASSIFIER_FACE, CLASSIFIER_EMOTION, CLASSIFIER_EMOTION_SIZE, EMOTION_LABELS, FONT
+from data import Result, CLASSIFIER_FACE, CLASSIFIER_EMOTION, CLASSIFIER_EMOTION_SIZE, EMOTION_LABELS, EMOTION_MICRO_LABELS, EMOTION_MAP, FONT
 from framework import AbstractRecognizer
 
 
@@ -67,11 +71,12 @@ class Recognizer(AbstractRecognizer):
             face = cls.uint2float(face)
             face = np.expand_dims(face, 0)
             face = np.expand_dims(face, -1)
-            emotion = CLASSIFIER_EMOTION.predict(face)  # type: ignore
+            emotion = CLASSIFIER_EMOTION.predict(face)[0]  # type: ignore
+            # print(emotion)
             # label = np.max(emotion)
-            label = np.argmax(emotion)
-            confidence = int(emotion[0][label] * 100)  # 百分数
-            result.append((label, confidence, x1, y1, x2, y2))
+            # label = np.argmax(emotion)
+            # confidence = int(emotion[label] * 100)  # 百分数
+            result.append((x1, y1, x2, y2, emotion))
         return result
 
     # 将表情信息添加到图像上，同时整理成文本信息
@@ -79,17 +84,21 @@ class Recognizer(AbstractRecognizer):
     def markEmotion(cls, image: CVImage,
                     emotions: list[tuple]) -> tuple[CVImage, str]:
         result = image
-        if len(emotions) == 1:
-            text = Result.FACE_FOUND_SINGLE.value
-        else:
-            emotions.sort(key=lambda x: x[2])
-            text = Result.FACE_FOUND_MULTIPLE.value.format(len(emotions))
+        # if len(emotions) == 1:
+        #     text = Result.FACE_FOUND_SINGLE.value
+        # else:
+        #     emotions.sort(key=lambda x: x[0])
+        #     text = Result.FACE_FOUND_MULTIPLE.value.format(len(emotions))
+        text = ''
         try:
-            for index, data, x1, y1, x2, y2 in emotions:
-                label = f'{EMOTION_LABELS[index]} ({str(data)}%)   '
+            for x1, y1, x2, y2, emotion in emotions:
+                # label = f'{EMOTION_LABELS[index]} ({str(data)}%)   '
+                # label = ','.join(f'{emotion[i]}' for i in range(7))
+                label = cls.microexpression(emotion)
                 cv2.rectangle(result, (x1, y1), (x2, y2), (0, 0, 255), 2)
-                result = cls.putText_CN(result, label, (x1, y1))
-                text += label
+                # result = cls.putText_CN(result, label, (x1, y1))
+                text += label + '\n'
+                print(label)
         except:
             print('发生未知错误，可能是中文字库调用失败')
         return result, text
@@ -102,6 +111,28 @@ class Recognizer(AbstractRecognizer):
         x = x - 0.5
         x = x * 2.0
         return x
+
+    @classmethod
+    def microexpression(cls, origin: tuple[int]) -> str:
+        result = []
+        confidence = 0
+        emotions = tuple(EMOTION_MAP[i](origin[i]) for i in range(7))
+        limit = floor(0.8 * max(emotions))
+        emotions = sorted(enumerate(emotions),
+                          key=lambda x: x[1],
+                          reverse=True)[:3]
+        for i, value in emotions:
+            if value < limit:
+                break
+            result.append(i)
+            confidence += origin[i]
+
+        # return tuple(EMOTION_MAP[i](origin[i]) for i in range(7))
+        # return str(EMOTION_LABELS[result[-1]]) + f'{origin[result[-1]]*100:.0}'
+        name = tuple(sorted(result))
+        detail = tuple(EMOTION_LABELS[i] for i in result)
+        return EMOTION_MICRO_LABELS[name].format(*detail,
+                                                 round(confidence * 100))
 
     # 在图片上添加中文
     @classmethod

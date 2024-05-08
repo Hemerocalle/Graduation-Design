@@ -1,0 +1,1 @@
+pyuic5 ui.ui -x -o ui_auto.py
