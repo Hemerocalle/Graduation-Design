@@ -26,7 +26,7 @@ input_shape = (48, 48, 1)
 validation_split = 0.1
 num_classes = 7
 patience = 50
-base_path = 'test/'
+base_path = 'models/test/'
 
 # data generator
 data_generator = ImageDataGenerator(featurewise_center=False,
