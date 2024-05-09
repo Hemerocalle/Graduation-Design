@@ -116,6 +116,8 @@ class Recognizer(AbstractRecognizer):
         result = []
         confidence = 0
         emotions = tuple(EMOTION_MAP[i](origin[i]) for i in range(7))
+        # print(origin)
+        # print(emotions)
         limit = floor(0.8 * max(emotions))
         emotions = sorted(enumerate(emotions),
                           key=lambda x: x[1],

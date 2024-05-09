@@ -14,7 +14,7 @@ from PIL import ImageFont
 
 # 人脸识别和表情识别的模型路径
 MODEL_FACE = 'models/model_face/haarcascade_frontalface_default.xml'
-MODEL_EMOTION = 'models/test/fer2013_mini_XCEPTION.95-0.70.hdf5'
+MODEL_EMOTION = 'models/model_emotion/fer2013_mini_XCEPTION.95-0.70.hdf5'
 # 载入模型数据
 CLASSIFIER_FACE = CascadeClassifier(MODEL_FACE)
 CLASSIFIER_EMOTION = load_model(MODEL_EMOTION, compile=False)
@@ -103,11 +103,11 @@ EMOTION_MICRO_LABELS = {
 
 # 表情映射表
 EMOTION_MAP = (
-    lambda x: round(184 * x**3 - 408 * x**2 + 324 * x),
-    lambda x: round(100 * x**0.25),
-    lambda x: round(32 * x**3 - 153 * x**2 + 221 * x),
+    lambda x: round(-23 * x**3 - 65 * x**2 + 188 * x),
+    lambda x: round(100 * x**0.3),
+    lambda x: round(100 * x**0.3),
     lambda x: round(162 * x**3 - 105 * x**2 + 43 * x),
-    lambda x: round(128 * x**3 - 344 * x**2 + 316 * x),
+    lambda x: round(100 * x**0.3),
     lambda x: round(179 * x**3 - 400 * x**2 + 321 * x),
     lambda x: round(100 * x**0.5),
 )

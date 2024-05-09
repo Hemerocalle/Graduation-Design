@@ -127,7 +127,7 @@ class Controller():
                 cls.textBox.setText(Result.FACE_NOT_FOUND.value)
                 break
             elif res is Result.FACE_NOT_FOUND_CONTINUE:  # 找不到人脸，继续工作
-                # cls.textBox.setText(Result.FACE_NOT_FOUND_CONTINUE.value)
+                cls.textBox.setText(Result.FACE_NOT_FOUND_CONTINUE.value)
                 cls.imageBox.setStyleSheet(f'image: url(./{PATH_RESULT})')
             else:
                 print('发生未知错误，可能是识别器无法正常工作')

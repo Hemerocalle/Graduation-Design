@@ -134,6 +134,7 @@ class RecVidio(Recognizer):
         if cls.emotion_freq != 0:
             cls.emotion_freq -= 1
         else:
+            cls.emotion_freq = 3
             # 获取灰度图像
             # img_gray = cv2.imread(PATH_ORIGIN, 0)
             img_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
@@ -147,8 +148,6 @@ class RecVidio(Recognizer):
             # 识别表情状态
             cls.emotions = cls.getEmotion(img_gray, faces)
 
-            cls.emotion_freq = 3
-
         # 将识别结果展示在屏幕图像框中
         result, text = cls.markEmotion(frame, cls.emotions)
         cv2.imwrite(PATH_RESULT, result)
@@ -160,6 +159,8 @@ class RecVidio(Recognizer):
 # 实时识别器
 class RecCamera(Recognizer):
     camera: VideoCapture
+    emotions: list[tuple]
+    emotion_freq: int
 
     @classmethod
     def radioOn(cls):
@@ -181,6 +182,7 @@ class RecCamera(Recognizer):
             return Result.CAMERA_NOT_FOUND, ''
 
         cv2.waitKey(1)
+        cls.emotion_freq = 0
         _, cover = cls.camera.read()  # 从视频流中读取
         cover = cv2.flip(cover, 1)
         cv2.imwrite(PATH_ORIGIN, cover)
@@ -197,20 +199,25 @@ class RecCamera(Recognizer):
         frame = cv2.flip(frame, 1)
         # cv2.imwrite(PATH_ORIGIN, frame)
 
-        # 获取灰度图像
-        # img_gray = cv2.imread(PATH_ORIGIN, 0)
-        img_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+        # 提高视频流畅程度，每识别一帧会冷却3帧
+        if cls.emotion_freq != 0:
+            cls.emotion_freq -= 1
+        else:
+            cls.emotion_freq = 3
+            # 获取灰度图像
+            # img_gray = cv2.imread(PATH_ORIGIN, 0)
+            img_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
 
-        # 识别人脸位置
-        faces = cls.getFace(img_gray)
-        if len(faces) == 0:  # 找不到人脸
-            cv2.imwrite(PATH_RESULT, frame)
-            return Result.FACE_NOT_FOUND_CONTINUE, ''
+            # 识别人脸位置
+            faces = cls.getFace(img_gray)
+            if len(faces) == 0:  # 找不到人脸
+                cv2.imwrite(PATH_RESULT, frame)
+                return Result.FACE_NOT_FOUND_CONTINUE, ''
 
-        # 识别表情状态
-        emotions = cls.getEmotion(img_gray, faces)
+            # 识别表情状态
+            cls.emotions = cls.getEmotion(img_gray, faces)
 
         # 将识别结果展示在屏幕图像框中
-        result, text = cls.markEmotion(frame, emotions)
+        result, text = cls.markEmotion(frame, cls.emotions)
         cv2.imwrite(PATH_RESULT, result)
         return Result.CONTINUE, text
