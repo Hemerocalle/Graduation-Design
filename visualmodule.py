@@ -9,27 +9,27 @@
 # 识别器的模板，用于提供识别器切换流程和通用视觉模块
 #
 # getFace
-# 从灰度图像中找出人脸
+# 从灰度图像中检测人脸
 #
 # getEmotion
-# 根据人脸检测结果切割图片，并识别为表情信息
+# 为图像中每个面部区域检测表情
 #
 # markEmotion
-# 将表情信息添加到图像上，同时整理成文本信息
+# 在图像上标记表情信息，同时整理成文本信息
+#
+# microexpression
+# 根据给定的情感原始值元组，计算并返回最显著的微表情及其置信度
+#
+# putText_CN
+# 在图片上添加中文
+# cv库无法执行此工作，需要将图片转为PIL文件，添加完成后再转回去
 #
 # uint2float
 # 将图片从uint_8矩阵转化为float32矩阵，便于识别器处理
 #
-# putTextbyChinese
-# 在图片上添加中文
-# cv库无法执行此工作，需要将图片转为PIL文件，添加完成后再转回去
-#
-# 最后更新时间 2024/04/15
+# 最后更新时间 2024/05/16
 
-from cProfile import label
-from cgitb import text
 from math import floor
-from re import match
 from typing import Sequence
 from PIL import Image as PILImage, ImageDraw
 import cv2
@@ -50,13 +50,13 @@ class Recognizer(AbstractRecognizer):
             rec.radioOff()
             self.radioOn()
 
-    # 从灰度图像中找出人脸
+    # 从灰度图像中检测人脸
     @classmethod
     def getFace(cls, image: CVImage) -> Sequence[Rect]:
         result = CLASSIFIER_FACE.detectMultiScale(image, 1.3, 5)
         return result
 
-    # 根据人脸检测结果切割图片，并识别为表情信息
+    # 为图像中每个面部区域检测表情
     @classmethod
     def getEmotion(cls, image: CVImage, fases: Sequence[Rect]) -> list[tuple]:
         img_np = np.expand_dims(image, 2)  # 224*224*1
@@ -79,7 +79,7 @@ class Recognizer(AbstractRecognizer):
             result.append((x1, y1, x2, y2, emotion))
         return result
 
-    # 将表情信息添加到图像上，同时整理成文本信息
+    # 在图像上标记表情信息，同时整理成文本信息
     @classmethod
     def markEmotion(cls, image: CVImage,
                     emotions: list[tuple]) -> tuple[CVImage, str]:
@@ -102,15 +102,7 @@ class Recognizer(AbstractRecognizer):
             print('发生未知错误，可能是中文字库调用失败')
         return result, text
 
-    # 将图片从uint_8矩阵转化为float32矩阵，便于识别器处理
-    @classmethod
-    def uint2float(cls, x: NPImage) -> NPImage:
-        x = x.astype('float32')
-        x = x / 255.0
-        x = x - 0.5
-        x = x * 2.0
-        return x
-
+    # 根据给定的情感原始值元组，计算并返回最显著的微表情及其置信度
     @classmethod
     def microexpression(cls, origin: tuple[int]) -> str:
         result = []
@@ -135,7 +127,7 @@ class Recognizer(AbstractRecognizer):
         return EMOTION_MICRO_LABELS[name].format(*detail,
                                                  round(confidence * 100))
 
-    # 在图片上添加中文
+    # 在图像上添加中文文本
     @classmethod
     def putText_CN(cls, image: CVImage, text: str,
                    position: tuple[float, float]) -> CVImage:
@@ -151,3 +143,12 @@ class Recognizer(AbstractRecognizer):
         img_res = cv2.cvtColor(np.array(img_pil), COLOR_RGB2BGR)
 
         return img_res
+
+    # 将图片从uint_8矩阵转化为float32矩阵，便于识别器处理
+    @classmethod
+    def uint2float(cls, x: NPImage) -> NPImage:
+        x = x.astype('float32')
+        x = x / 255.0
+        x = x - 0.5
+        x = x * 2.0
+        return x
