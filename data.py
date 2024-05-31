@@ -17,7 +17,7 @@ MODEL_FACE = 'models/model_face/haarcascade_frontalface_default.xml'
 MODEL_EMOTION = 'models/model_emotion/fer2013_mini_XCEPTION.95-0.70.hdf5'
 
 # 载入模型数据
-CLAHE_FACE = createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+CLAHE_FACE = createCLAHE(clipLimit=4.0, tileGridSize=(8, 8))
 CLASSIFIER_FACE = CascadeClassifier(MODEL_FACE)
 CLASSIFIER_EMOTION = load_model(MODEL_EMOTION, compile=False)
 CLASSIFIER_EMOTION_SIZE = CLASSIFIER_EMOTION.input_shape[1:3]  # type: ignore

@@ -30,11 +30,9 @@
 # 最后更新时间 2024/05/16
 
 from math import floor
-from turtle import width
-from typing import Sequence
 from PIL import Image as PILImage, ImageDraw
 import cv2
-from cv2.typing import MatLike as CVImage, Rect
+from cv2.typing import MatLike as CVImage
 from cv2 import COLOR_BGR2RGB, COLOR_RGB2BGR
 import numpy as np
 from numpy._typing import NDArray as NPImage
@@ -53,7 +51,7 @@ class Recognizer(AbstractRecognizer):
 
     # 从灰度图像中检测人脸
     @classmethod
-    def getFace(cls, image: CVImage) -> Sequence[Rect]:
+    def getFace(cls, image: CVImage) -> list[tuple]:
         # image = cv2.GaussianBlur(image, (5, 5), 0)  # 高斯模糊
         # image = cv2.equalizeHist(image)  # 直方图均衡化
         image = CLAHE_FACE.apply(image)  # 局部对比度增强

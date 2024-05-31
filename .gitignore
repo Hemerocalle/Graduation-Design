@@ -1,7 +1,9 @@
 __pycache__
+.gitignore
 .history
 .vscode
 temp
 ui/ui_auto.py
 models/test
 test.py
+release
