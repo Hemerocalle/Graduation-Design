@@ -8,14 +8,16 @@
 # 最后更新时间 2024/04/15
 
 from enum import Enum
-from cv2 import CascadeClassifier
+from cv2 import CascadeClassifier, createCLAHE
 from keras.models import load_model
 from PIL import ImageFont
 
 # 人脸识别和表情识别的模型路径
 MODEL_FACE = 'models/model_face/haarcascade_frontalface_default.xml'
 MODEL_EMOTION = 'models/model_emotion/fer2013_mini_XCEPTION.95-0.70.hdf5'
+
 # 载入模型数据
+CLAHE_FACE = createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 CLASSIFIER_FACE = CascadeClassifier(MODEL_FACE)
 CLASSIFIER_EMOTION = load_model(MODEL_EMOTION, compile=False)
 CLASSIFIER_EMOTION_SIZE = CLASSIFIER_EMOTION.input_shape[1:3]  # type: ignore

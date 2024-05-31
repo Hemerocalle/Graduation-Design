@@ -131,10 +131,7 @@ class RecVidio(Recognizer):
         # cv2.imwrite(PATH_ORIGIN, frame)
 
         # 提高视频流畅程度，每识别一帧会冷却3帧
-        if cls.emotion_freq != 0:
-            cls.emotion_freq -= 1
-        else:
-            cls.emotion_freq = 3
+        if cls.emotion_freq == 0:
             # 获取灰度图像
             # img_gray = cv2.imread(PATH_ORIGIN, 0)
             img_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
@@ -147,6 +144,11 @@ class RecVidio(Recognizer):
 
             # 识别表情状态
             cls.emotions = cls.getEmotion(img_gray, faces)
+
+            # 冷却
+            cls.emotion_freq = 3
+        else:
+            cls.emotion_freq -= 1
 
         # 将识别结果展示在屏幕图像框中
         result, text = cls.markEmotion(frame, cls.emotions)
@@ -200,10 +202,7 @@ class RecCamera(Recognizer):
         # cv2.imwrite(PATH_ORIGIN, frame)
 
         # 提高视频流畅程度，每识别一帧会冷却3帧
-        if cls.emotion_freq != 0:
-            cls.emotion_freq -= 1
-        else:
-            cls.emotion_freq = 3
+        if cls.emotion_freq == 0:
             # 获取灰度图像
             # img_gray = cv2.imread(PATH_ORIGIN, 0)
             img_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
@@ -216,6 +215,11 @@ class RecCamera(Recognizer):
 
             # 识别表情状态
             cls.emotions = cls.getEmotion(img_gray, faces)
+
+            # 冷却
+            cls.emotion_freq = 5
+        else:
+            cls.emotion_freq -= 1
 
         # 将识别结果展示在屏幕图像框中
         result, text = cls.markEmotion(frame, cls.emotions)

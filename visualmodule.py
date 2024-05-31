@@ -30,6 +30,7 @@
 # 最后更新时间 2024/05/16
 
 from math import floor
+from turtle import width
 from typing import Sequence
 from PIL import Image as PILImage, ImageDraw
 import cv2
@@ -38,7 +39,7 @@ from cv2 import COLOR_BGR2RGB, COLOR_RGB2BGR
 import numpy as np
 from numpy._typing import NDArray as NPImage
 
-from data import Result, CLASSIFIER_FACE, CLASSIFIER_EMOTION, CLASSIFIER_EMOTION_SIZE, EMOTION_LABELS, EMOTION_MICRO_LABELS, EMOTION_MAP, FONT
+from data import Result, CLAHE_FACE, CLASSIFIER_FACE, CLASSIFIER_EMOTION, CLASSIFIER_EMOTION_SIZE, EMOTION_LABELS, EMOTION_MICRO_LABELS, EMOTION_MAP, FONT
 from framework import AbstractRecognizer
 
 
@@ -53,16 +54,33 @@ class Recognizer(AbstractRecognizer):
     # 从灰度图像中检测人脸
     @classmethod
     def getFace(cls, image: CVImage) -> Sequence[Rect]:
-        result = CLASSIFIER_FACE.detectMultiScale(image, 1.3, 5)
+        # image = cv2.GaussianBlur(image, (5, 5), 0)  # 高斯模糊
+        # image = cv2.equalizeHist(image)  # 直方图均衡化
+        image = CLAHE_FACE.apply(image)  # 局部对比度增强
+        face = CLASSIFIER_FACE.detectMultiScale(image, 1.3, 5)
+
+        # 移除眼睛、脖子等干扰数据
+        result = []
+        for x1, y1, size1, _ in face:
+            for x2, y2, size2, _ in face:
+                if size1 == size2:
+                    continue
+
+                # 检查是否有重叠
+                if (x1 < x2 + size2 and x2 < x1 + size1 and y1 < y2 + size2
+                        and y2 < y1 + size1 and size1 * 2 < size2):
+                    break
+            else:
+                result.append((x1, y1, size1))
         return result
 
     # 为图像中每个面部区域检测表情
     @classmethod
-    def getEmotion(cls, image: CVImage, fases: Sequence[Rect]) -> list[tuple]:
+    def getEmotion(cls, image: CVImage, fases) -> list[tuple]:
         img_np = np.expand_dims(image, 2)  # 224*224*1
         result = []
-        for x1, y1, width, height in fases:
-            x2, y2 = x1 + width, y1 + height
+        for x1, y1, size in fases:
+            x2, y2 = x1 + size, y1 + size
             face = img_np[y1:y2, x1:x2]
             try:
                 face = cv2.resize(face, CLASSIFIER_EMOTION_SIZE)
@@ -110,7 +128,7 @@ class Recognizer(AbstractRecognizer):
         emotions = tuple(EMOTION_MAP[i](origin[i]) for i in range(7))
         # print(origin)
         # print(emotions)
-        limit = floor(0.8 * max(emotions))
+        limit = floor(0.85 * max(emotions))
         emotions = sorted(enumerate(emotions),
                           key=lambda x: x[1],
                           reverse=True)[:3]
